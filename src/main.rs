@@ -3,16 +3,31 @@ use std::error::Error;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Post {
-    userId: i32,
+    #[serde(rename = "userId")]
+    user_id: i32,
     id: i32,
     title: String,
     body: String,
 }
 
+fn build_client(proxy: Option<&str>) -> Result<reqwest::Client, Box<dyn Error>> {
+    let mut builder = reqwest::Client::builder();
+    
+    if let Some(proxy_url) = proxy {
+        builder = builder
+            .proxy(reqwest::Proxy::http(proxy_url)?);
+        builder = builder
+            .proxy(reqwest::Proxy::https(proxy_url)?);
+    }
+    
+    Ok(builder.build()?)
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    // 创建一个新的 reqwest 客户端
-    let client = reqwest::Client::new();
+    // 创建一个可选代理配置的 reqwest 客户端
+    let proxy_url = Some("http://localhost:7890"); // 设置为 None 可以禁用代理
+    let client = build_client(proxy_url)?;
 
     // 示例1：获取单个帖子并显示详细信息
     println!("示例1：获取单个帖子");
@@ -24,7 +39,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     if response.status().is_success() {
         let post: Post = response.json().await?;
         println!("帖子标题: {}", post.title);
-        println!("作者ID: {}", post.userId);
+        println!("作者ID: {}", post.user_id);
         println!("内容: {}", post.body);
         println!("-------------------");
     }
@@ -50,7 +65,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // 示例3：创建新帖子并显示结果
     println!("\n示例3：创建新帖子");
     let new_post = Post {
-        userId: 1,
+        user_id: 1,
         id: 101,
         title: "测试标题".to_string(),
         body: "这是一个测试帖子的内容，用于演示API的使用。".to_string(),
@@ -75,7 +90,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // 示例4：更新帖子
     println!("\n示例4：更新帖子");
     let updated_post = Post {
-        userId: 1,
+        user_id: 1,
         id: 1,
         title: "更新后的标题".to_string(),
         body: "这是更新后的内容。".to_string(),
