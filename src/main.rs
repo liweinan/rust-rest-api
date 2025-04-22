@@ -25,8 +25,8 @@ fn build_client(proxy: Option<&str>) -> Result<reqwest::Client, Box<dyn Error>> 
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    // 创建一个可选代理配置的 reqwest 客户端
-    let proxy_url = Some("http://localhost:7890"); // 设置为 None 可以禁用代理
+    // 创建一个默认不使用代理的 reqwest 客户端
+    let proxy_url = None; // 默认不使用代理
     let client = build_client(proxy_url)?;
 
     // 示例1：获取单个帖子并显示详细信息
